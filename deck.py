@@ -32,7 +32,7 @@ def main():
     deck = generate_deck(ranks, suits)
     assign_values(deck)
     shuffle(deck)
-    return(deck)
+    return deck
 
 if __name__ == "__main__":
     main()
