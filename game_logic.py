@@ -149,21 +149,21 @@ def main():
             if dealer_value > player_value:
                 db.outcome("dealer", bet)
                 print("Sorry. You lose.")
-                break
+
             elif dealer_value < player_value:
                 db.outcome("player", bet)
                 print(f"Congratulations, you win {bet / 2} chips!")
-                break
             else:
                 print("DEALER'S CARDS:\n")
                 display_cards(dealer_hand)
                 print("Push, your bet was returned.")
+
+            replay = input("Play again? (y/n): ").lower()
+            if replay != "y":
+                print()
+                print("Come back soon!\n"
+                      "Bye!")
                 break
-        replay = input("Play again? (y/n): ").lower()
-        if replay != "y":
-            print()
-            print("Come back soon!\n"
-                  "Bye!")
             
                 
 if __name__ == "__main__":
