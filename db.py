@@ -1,32 +1,30 @@
-WALLET = "money.txt" # global variable for wallet file
+WALLET = "money.txt"  # global variable for wallet file
 
-def starting_balance(WALLET): # gives player a starting balance of 100 chips
-    with open(WALLET, "w") as f:
-        f.write(100)
+def starting_balance():  # Gives player a starting balance of 100 chips
+    try:
+        return WALLET
+    except FileNotFoundError:
+        with open(WALLET, "w") as f:
+            f.write(str(100.0))
 
-def read_balance(WALLET): # read .txt file to get player's current balance
+def read_balance():  # Reads money.txt to get player's current balance
     with open(WALLET) as f:
-        return int(f.read())
-    
-def change_balance(new_balance): # changes player balance
-    with open(WALLET, "w") as f:
-        f.write(new_balance)
+        return float(f.read())
 
-def check_bet(bet_amount): # Confirms if players balance is sufficient for bet
-    balance = read_balance()
-    if bet_amount > balance:
-        print("Please deposit more chips!")
-        return False
-    else:
-        return True
+def _change_balance(new_balance):  # Changes player's balance (internal function)
+    with open(WALLET, "w") as f:
+        f.write(str(new_balance))
+
+def outcome(outcome, bet):  # Updates balance based on game outcome
+    current_balance = read_balance()
     
-def outcome(outcome, bet):
-    if outcome == "dealer":
-        bet = 0
-        return bet
-    elif outcome == "player":
-        bet *= 2
-        return bet
-    elif outcome == "bj":
-        bet *= 2.5
-        return bet
+    if outcome == "dealer":  # Player loses bet
+        new_balance = current_balance - bet
+    elif outcome == "player":  # Player wins bet
+        new_balance = current_balance + bet
+    elif outcome == "blackjack":  # Player gets blackjack
+        new_balance = current_balance + int(bet * 1.5)
+    else:
+        raise ValueError("Invalid outcome specified")
+    
+    _change_balance(new_balance)
