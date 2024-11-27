@@ -1,9 +1,5 @@
 import deck
 import db
-
-def title():
-    print("BLACKJACK!\n"
-          "Blackjack payout is 3:2\n")
     
 
 def show_balance(balance):
@@ -28,8 +24,6 @@ def input_bet(balance):  # Returns a valid bet
                 return bet
         except ValueError:
             print("Please enter a numeric value!")
-
-
 
 
 def deal_card(): # Deals a card
@@ -64,107 +58,92 @@ def check_value(hand): # Checks player or dealer's hand value
 def display_show_card(dealer_hand):
     show_card = dealer_hand[0]
     print(f"{show_card[0]} of {show_card[1]}\n")
-    if show_card[0] == "Ace":
-        print("Dealer's hand value: 1/11\n")
-    else:
-        print(f"Dealer's hand value: {show_card[2]}\n")
-
 
 def display_cards(hand):
     for card in hand:
         print(f"{card[0]} of {card[1]}")
+
+
+def outcome(scenario, bet):
+    if scenario == "blackjack":
+        print("\nYou got blackjack!\n")
+        db.outcome("blackjack", bet) 
+    elif scenario == "player":
+        print(f"\nCongratulations, you win {bet} chips!")
+        db.outcome("player", bet)
+    elif scenario == "dealer":
+        print("\nSorry. You lose.")
+        db.outcome("dealer", bet)
+    elif scenario == "push":
+        print("\nTie game! your bet was returned.")
+        db.outcome("push", bet)
+    show_balance(db.read_balance())
     print()
 
-
-def check_blackjack(player_value):
-    if player_value == 21:
-        return True
-    else:
-        return False
-    
-
-def player_gameplay(player_hand, player_value, bet):
+def player_gameplay(player_hand):
     while True:
         choice = input("Hit or stand? (hit/stand): ").lower()
         if choice == "hit":
             player_hand.append(deal_card())
             print("\nYOUR CARDS:")
             display_cards(player_hand)
+            print()
             player_value = check_value(player_hand)
-            print(f"Your hand value: {player_value}\n")
-            if check_bust(player_value) == True:
-                db.outcome("dealer", bet)
-                print("Sorry. You lose.")
-                break
+            if player_value > 21:
+                return "dealer", player_value # Called in play_round(balance)
         elif choice == "stand":
-            player_value = check_value(player_hand)
-            return player_value
+            return "player", check_value(player_hand)
         else:
             print("Please enter either hit or stand!\n")
 
 
-def dealer_gameplay(dealer_hand, dealer_value, bet):
+def dealer_gameplay(dealer_hand):
     while True:
         dealer_value = check_value(dealer_hand)
         if dealer_value < 17:
             dealer_hand.append(deal_card())
-        elif 22 > dealer_value <= 21:
-            return dealer_value
         else:
-            db.outcome("player", bet)
-            print(f"Congratulations, you win {bet / 2} chips!")
-        
+            return dealer_value
 
-def check_bust(hand_value):
-    if hand_value > 21:
-        return True
-    
+def display_points(player_value, dealer_value):
+    print(f"\nYOUR POINTS:     {player_value}\n"
+          f"DEALER'S POINTS: {dealer_value}")
 
-def main():
+def play_round(balance): # Primary function for game operation
     player_hand = []
     dealer_hand = []
 
-    title()
-    db.starting_balance() # Initializes starting balance if it isn't found
+    bet = input_bet(balance)
+    #reset_cards(player_hand, dealer_hand) # Resets cards for after first round
+    starting_hand(player_hand, dealer_hand) # Assigns starting hand without showing user
+
+    print("\nDEALER'S SHOW CARD:")
+    display_show_card(dealer_hand)
+    print("YOUR CARDS:")
+    display_cards(player_hand)
+    print()
+    player_value = check_value(player_hand)
+    if player_value == 21:
+        outcome("blackjack", bet)
+        return db.read_balance()
     
-    while True:
-        balance = db.read_balance()
-        show_balance(balance)
-        bet = input_bet(balance)
-        starting_hand(player_hand, dealer_hand) # Assigns starting hand without showing user
-        player_value = check_value(player_hand)
-        dealer_value = check_value(dealer_hand)
-        print()
-        print("DEALER'S SHOW CARD:")
-        display_show_card(dealer_hand)
-        print("YOUR CARDS:")
-        display_cards(player_hand)
-        print(f"Your hand value: {check_value(player_hand)}\n")
-        if check_blackjack(player_value) == True:
-            db.outcome("blackjack", bet)
-            print("You got blackjack!\n")
-        else:
-            player_value = player_gameplay(player_hand, player_value, bet)
-            dealer_value = dealer_gameplay(dealer_hand, dealer_value, bet)
-            if dealer_value > player_value:
-                db.outcome("dealer", bet)
-                print("Sorry. You lose.")
+    scenario, player_value = player_gameplay(player_hand)
 
-            elif dealer_value < player_value:
-                db.outcome("player", bet)
-                print(f"Congratulations, you win {bet / 2} chips!")
-            else:
-                print("DEALER'S CARDS:\n")
-                display_cards(dealer_hand)
-                print("Push, your bet was returned.")
+    if scenario == "dealer":
+        outcome("dealer", bet)
+        return db.read_balance()
+    
+    print("\nDEALER'S CARDS:")
+    dealer_value = dealer_gameplay(dealer_hand)
+    display_cards(dealer_hand)
 
-            replay = input("Play again? (y/n): ").lower()
-            if replay != "y":
-                print()
-                print("Come back soon!\n"
-                      "Bye!")
-                break
-            
-                
-if __name__ == "__main__":
-    main()
+    display_points(player_value, dealer_value)
+
+    if dealer_value > 21 or dealer_value < player_value:
+        outcome("player", bet)
+    elif dealer_value > player_value:
+        outcome("dealer", bet)
+    else:
+        outcome("push", bet)
+
+    return db.read_balance()
