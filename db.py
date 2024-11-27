@@ -1,3 +1,5 @@
+# This module handles all wallet operations of "money.py".
+
 import sys
 
 WALLET = "money.txt"  # global variable for wallet file

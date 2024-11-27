@@ -1,3 +1,5 @@
+# Main module for running the program
+
 import game_logic
 import db
 

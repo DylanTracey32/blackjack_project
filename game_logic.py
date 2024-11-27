@@ -1,3 +1,5 @@
+# Module for playing the game. Returns the player's balance to "main.py" when play_round() is ran.
+
 import deck
 import db
     
@@ -59,22 +61,24 @@ def display_show_card(dealer_hand):
     show_card = dealer_hand[0]
     print(f"{show_card[0]} of {show_card[1]}\n")
 
+
 def display_cards(hand):
     for card in hand:
         print(f"{card[0]} of {card[1]}")
 
 
-def outcome(scenario, bet):
-    if scenario == "blackjack":
-        print("\nYou got blackjack!\n")
+def outcome(scenario, bet): # Returns string text that "db.py" uses to give payout
+    if scenario == "blackjack": # Player gets blackjack
+        print("You got blackjack!")
+        print(f"\nCongratulations, you win {round(bet * 1.5, 2)} chips!")
         db.outcome("blackjack", bet) 
-    elif scenario == "player":
-        print(f"\nCongratulations, you win {bet} chips!")
+    elif scenario == "player": # Standard player win
+        print(f"\nCongratulations, you win {round(bet, 2)} chips!")
         db.outcome("player", bet)
-    elif scenario == "dealer":
+    elif scenario == "dealer": # Dealer wins
         print("\nSorry. You lose.")
         db.outcome("dealer", bet)
-    elif scenario == "push":
+    elif scenario == "push": # Tie game
         print("\nTie game! your bet was returned.")
         db.outcome("push", bet)
     show_balance(db.read_balance())
@@ -114,7 +118,6 @@ def play_round(balance): # Primary function for game operation
     dealer_hand = []
 
     bet = input_bet(balance)
-    #reset_cards(player_hand, dealer_hand) # Resets cards for after first round
     starting_hand(player_hand, dealer_hand) # Assigns starting hand without showing user
 
     print("\nDEALER'S SHOW CARD:")
